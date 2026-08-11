@@ -1,7 +1,7 @@
 // basic web crawler
 // https://books.toscrape.com/ or https://quotes.toscrape.com/ for testing
 // https://www.hellointerview.com/learn/system-design/problem-breakdowns/web-crawler
-
+// https://bytebytego.com/courses/system-design-interview/design-a-web-crawler
 
 // only returns links of original page -> no crawling involved (just surface level)
 // this was just a test 
@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     // fetch the page
     // get request for Future, ? bails and returns error on error.
-    let body = reqwest::get(url).await?.text().await?;
+    let body = reqwest::get(url).await?.error_for_status()?.text().await?;
     println!("Fetched {} bytes", body.len());
 
     // parse it and pull out every link
