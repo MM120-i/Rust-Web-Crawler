@@ -4,9 +4,14 @@
 // https://bytebytego.com/courses/system-design-interview/design-a-web-crawler
 
 // only returns links of original page -> no crawling involved (just surface level)
-// this was just a test 
+// this was just a test
+
+mod actiontest;
+
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>>{
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", actiontest::hello_world());
+
     let url = "https://books.toscrape.com/";
 
     // fetch the page
@@ -26,4 +31,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     }
     Ok(())
 }
-
