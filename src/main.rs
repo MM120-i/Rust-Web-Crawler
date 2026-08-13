@@ -24,6 +24,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
             println!("{}", href);
         }
     }
+
+    println!("Test changes");
+
     Ok(())
 }
 
