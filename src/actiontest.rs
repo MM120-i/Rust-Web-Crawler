@@ -4,12 +4,12 @@ pub fn hello_world() -> String {
 }
 
 // unit testing will happen in respective files as to have access to private functions
-#[cfg(test)] 
+#[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_hello_world(){
+    fn test_hello_world() {
         assert_eq!(hello_world(), "Hello, world!")
     }
 }
