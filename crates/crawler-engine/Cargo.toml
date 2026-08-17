@@ -1,0 +1,7 @@
+[package]
+name = "crawler-engine"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+crawler-core = { path = "../crawler-core" }
