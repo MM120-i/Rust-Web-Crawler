@@ -1,0 +1,6 @@
+[package]
+name = "crawler-test-site"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

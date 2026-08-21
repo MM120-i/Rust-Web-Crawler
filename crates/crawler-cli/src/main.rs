@@ -4,13 +4,12 @@
 // https://bytebytego.com/courses/system-design-interview/design-a-web-crawler
 
 // only returns links of original page -> no crawling involved (just surface level)
-// this was just a test
-
-mod actiontest;
+// this was just a test, and now lives here as a stub until Phase 1 replaces it
+// with the real crawl loop (crawler_engine) driven from this CLI.
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("{}", actiontest::hello_world());
+    println!("{}", crawler_core::hello_world());
 
     let url = "https://books.toscrape.com/";
 

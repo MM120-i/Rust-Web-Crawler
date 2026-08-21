@@ -1,9 +1,9 @@
-// solely exists for now so that the github action for tests can run
+// Placeholder for shared domain logic (URL scope rules, politeness policy, frontier types).
+// Real content lands in Phase 1; this keeps the crate compiling and testable in the meantime.
 pub fn hello_world() -> String {
     String::from("Hello, world!")
 }
 
-// unit testing will happen in respective files as to have access to private functions
 #[cfg(test)]
 mod tests {
     use super::*;

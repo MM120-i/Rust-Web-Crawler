@@ -1,9 +1,17 @@
-[package]
-name = "Rust-Web-Crawler"
+[workspace]
+resolver = "3"
+members = [
+    "crates/crawler-core",
+    "crates/crawler-engine",
+    "crates/crawler-cli",
+    "crates/crawler-test-site",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
 reqwest = { version = "0.13.4", features = ["json"] }
 scraper = "0.27.0"
 tokio = { version = "1.53.1", features = ["full"] }
