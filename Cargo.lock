@@ -159,6 +159,9 @@ dependencies = [
 [[package]]
 name = "crawler-core"
 version = "0.1.0"
+dependencies = [
+ "url",
+]
 
 [[package]]
 name = "crawler-engine"
