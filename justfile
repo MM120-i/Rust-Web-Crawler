@@ -1,3 +1,5 @@
+set shell := ["powershell", "-c"]
+
 # List available commands (this is what runs if you just type `just`)
 default:
     @just --list
@@ -5,6 +7,10 @@ default:
 # Static checks that mirror CI's fmt + clippy jobs
 check:
     cargo fmt --check
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+# Run clippy only
+clippy:
     cargo clippy --workspace --all-targets --all-features -- -D warnings
 
 # Auto-fix formatting

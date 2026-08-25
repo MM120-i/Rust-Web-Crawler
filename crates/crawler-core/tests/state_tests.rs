@@ -21,8 +21,7 @@ fn url_state_variants_are_distinct() {
         for (j, b) in states.iter().enumerate() {
             if i == j {
                 assert_eq!(a, b);
-            } 
-            else {
+            } else {
                 assert_ne!(a, b);
             }
         }
@@ -50,8 +49,7 @@ fn skip_reason_variants_are_distinct() {
         for (j, b) in reasons.iter().enumerate() {
             if i == j {
                 assert_eq!(a, b);
-            } 
-            else {
+            } else {
                 assert_ne!(a, b);
             }
         }
@@ -83,8 +81,7 @@ fn fetch_error_variants_are_distinct() {
         for (j, b) in errors.iter().enumerate() {
             if i == j {
                 assert_eq!(a, b);
-            } 
-            else {
+            } else {
                 assert_ne!(a, b);
             }
         }
@@ -112,8 +109,7 @@ fn retry_decision_variants_are_distinct() {
         for (j, b) in decisions.iter().enumerate() {
             if i == j {
                 assert_eq!(a, b);
-            } 
-            else {
+            } else {
                 assert_ne!(a, b);
             }
         }

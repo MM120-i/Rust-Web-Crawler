@@ -30,7 +30,7 @@ struct AdmissionCase {
 #[test]
 fn table_driven_admission() {
     let cfg: CrawlConfig = config();
-    
+
     let cases: Vec<AdmissionCase> = vec![
         AdmissionCase {
             name: "admits in-scope http URL at depth 0",
@@ -115,12 +115,17 @@ fn table_driven_admission() {
     ];
 
     for case in cases {
-        let url: Url = Url::parse(case.url).unwrap_or_else(|e: url::ParseError| panic!("parse failed for '{}' ({}): {e}", case.name, case.url));
+        let url: Url = Url::parse(case.url).unwrap_or_else(|e: url::ParseError| {
+            panic!("parse failed for '{}' ({}): {e}", case.name, case.url)
+        });
         let source: Option<UrlId> = case.source.map(UrlId);
-        let result: Result<crawler_core::AdmittedUrl, AdmissionError> = admit(&cfg, &url, case.depth, source);
+        let result: Result<crawler_core::AdmittedUrl, AdmissionError> =
+            admit(&cfg, &url, case.depth, source);
 
         if case.expect_ok {
-            let admitted: crawler_core::AdmittedUrl = result.unwrap_or_else(|e: AdmissionError| panic!("expected Ok for '{}', got Err: {e}", case.name));
+            let admitted: crawler_core::AdmittedUrl = result.unwrap_or_else(|e: AdmissionError| {
+                panic!("expected Ok for '{}', got Err: {e}", case.name)
+            });
             assert_eq!(admitted.depth, case.depth, "depth mismatch: {}", case.name);
             assert_eq!(
                 admitted.source_url_id, source,
