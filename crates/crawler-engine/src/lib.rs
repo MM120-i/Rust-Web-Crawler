@@ -51,8 +51,9 @@ impl Frontier {
     }
 
     pub fn enqueue(&mut self, admitted: AdmittedUrl) -> EnqueueResult {
-        let total_active: u32 = self.pages_fetched + self.queue.len() as u32 + self.in_flight.len() as u32;
-        
+        let total_active: u32 =
+            self.pages_fetched + self.queue.len() as u32 + self.in_flight.len() as u32;
+
         if total_active >= self.max_pages {
             return EnqueueResult::AtCapacity;
         }
@@ -82,8 +83,7 @@ impl Frontier {
             self.pages_fetched += 1;
             self.completed_count += 1;
             true
-        } 
-        else {
+        } else {
             false
         }
     }
@@ -92,8 +92,7 @@ impl Frontier {
         if self.in_flight.remove(crawl_key) {
             self.failed_count += 1;
             true
-        } 
-        else {
+        } else {
             false
         }
     }
