@@ -10,6 +10,10 @@ check:
     cargo fmt --check
     cargo clippy --workspace --all-targets --all-features -- -D warnings
 
+# Run clippy only
+clippy:
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
+
 # Auto-fix formatting
 fmt:
     cargo fmt

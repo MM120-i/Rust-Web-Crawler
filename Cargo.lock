@@ -159,12 +159,18 @@ dependencies = [
 [[package]]
 name = "crawler-core"
 version = "0.1.0"
+dependencies = [
+ "thiserror",
+ "url",
+]
 
 [[package]]
 name = "crawler-engine"
 version = "0.1.0"
 dependencies = [
  "crawler-core",
+ "tokio",
+ "url",
 ]
 
 [[package]]
