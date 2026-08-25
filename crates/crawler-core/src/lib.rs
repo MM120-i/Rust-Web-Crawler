@@ -1,5 +1,9 @@
+pub mod url;
+
 use std::time::Duration;
-use url::Url;
+use ::url::Url;
+
+pub use url::{AdmittedUrl, AdmissionError, CrawlKey};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CrawlJobId(pub u64);

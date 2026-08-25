@@ -1,5 +1,4 @@
 use std::time::Duration;
-
 use crawler_core::CrawlConfig;
 
 pub fn test_config(allowed_hosts: Vec<&str>) -> CrawlConfig {
