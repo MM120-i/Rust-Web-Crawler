@@ -55,9 +55,7 @@ impl Frontier {
             return EnqueueResult::AtCapacity;
         }
 
-        if self.seen.contains(&admitted.crawl_key)
-            || self.in_flight.contains(&admitted.crawl_key)
-        {
+        if self.seen.contains(&admitted.crawl_key) || self.in_flight.contains(&admitted.crawl_key) {
             return EnqueueResult::Duplicate;
         }
 

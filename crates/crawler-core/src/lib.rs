@@ -1,9 +1,9 @@
 pub mod url;
 
-use std::time::Duration;
 use ::url::Url;
+use std::time::Duration;
 
-pub use url::{AdmittedUrl, AdmissionError, CrawlKey};
+pub use url::{AdmissionError, AdmittedUrl, CrawlKey};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CrawlJobId(pub u64);
@@ -52,7 +52,7 @@ pub enum SkipReason {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FetchErrorKind {
     Network,
-    Timeout, 
+    Timeout,
     HttpError(u16),
     BodyTooLarge,
     InvalidRedirect,
@@ -115,7 +115,7 @@ impl Origin {
 
 impl CrawlConfig {
     pub fn is_in_scope(&self, url: &Url) -> bool {
-        if !matches!(url.scheme(), "http" | "https"){
+        if !matches!(url.scheme(), "http" | "https") {
             return false;
         }
 
@@ -124,9 +124,16 @@ impl CrawlConfig {
         };
 
         let host: String = host.trim_end_matches('.').to_ascii_lowercase();
-        let host_ok: bool = self.allowed_hosts.iter().any(|h: &String| h.eq_ignore_ascii_case(&host));
-        let path_ok: bool = self.allowed_path_prefixes.is_empty() || self
-            .allowed_path_prefixes.iter().any(|p: &String| url.path() == p || url.path().starts_with(&format!("{p}/")));
+        let host_ok: bool = self
+            .allowed_hosts
+            .iter()
+            .any(|h| h.trim_end_matches('.').eq_ignore_ascii_case(&host));
+        let path_ok: bool = self.allowed_path_prefixes.is_empty()
+            || self.allowed_path_prefixes.iter().any(|p| {
+                url.path() == p
+                    || (p == "/" && url.path().starts_with('/'))
+                    || url.path().starts_with(&format!("{p}/"))
+            });
 
         host_ok && path_ok
     }

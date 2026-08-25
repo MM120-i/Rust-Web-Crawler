@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use crawler_core::{
-    CrawlJobId, DiscoveredLink, FetchErrorKind, FetchId, FetchRequest,
-    FetchResponseMetadata, OriginId, RetryDecision, SkipReason, UrlId, UrlState,
+    CrawlJobId, DiscoveredLink, FetchErrorKind, FetchId, FetchRequest, FetchResponseMetadata,
+    OriginId, RetryDecision, SkipReason, UrlId, UrlState,
 };
 
 use url::Url;
@@ -103,7 +103,7 @@ fn retry_after_preserves_duration() {
 
 #[test]
 fn retry_decision_variants_are_distinct() {
-    let decisions = [
+    let decisions: [RetryDecision; 3] = [
         RetryDecision::RetryNow,
         RetryDecision::RetryAfter(Duration::from_secs(1)),
         RetryDecision::DoNotRetry,
@@ -112,7 +112,8 @@ fn retry_decision_variants_are_distinct() {
         for (j, b) in decisions.iter().enumerate() {
             if i == j {
                 assert_eq!(a, b);
-            } else {
+            } 
+            else {
                 assert_ne!(a, b);
             }
         }
@@ -183,7 +184,7 @@ fn discovered_link_stores_all_fields() {
         target_url: Url::parse("https://example.com/other").unwrap(),
         anchor_text: "click here".into(),
     };
-    
+
     assert_eq!(link.source_url_id, UrlId(1));
     assert_eq!(link.target_url.as_str(), "https://example.com/other");
     assert_eq!(link.anchor_text, "click here");

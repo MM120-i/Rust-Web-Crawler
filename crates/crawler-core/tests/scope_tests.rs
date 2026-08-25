@@ -78,3 +78,17 @@ fn scope_rejects_url_with_no_host() {
     let _config: crawler_core::CrawlConfig = test_config(vec!["example.com"]);
     assert!(Url::parse("http://").is_err());
 }
+
+#[test]
+fn scope_matches_configured_host_with_trailing_dot() {
+    let config: crawler_core::CrawlConfig = test_config(vec!["example.com."]);
+    assert!(config.is_in_scope(&Url::parse("https://example.com/").unwrap()));
+}
+
+#[test]
+fn scope_root_prefix_matches_any_path() {
+    let config: crawler_core::CrawlConfig = test_config_with_paths(vec!["example.com"], vec!["/"]);
+    assert!(config.is_in_scope(&Url::parse("https://example.com/").unwrap()));
+    assert!(config.is_in_scope(&Url::parse("https://example.com/docs").unwrap()));
+    assert!(config.is_in_scope(&Url::parse("https://example.com/a/b/c").unwrap()));
+}

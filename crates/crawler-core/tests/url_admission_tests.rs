@@ -1,4 +1,4 @@
-use crawler_core::url::{admit, AdmissionError};
+use crawler_core::url::{AdmissionError, admit};
 use crawler_core::{CrawlConfig, UrlId};
 use std::time::Duration;
 use url::Url;
@@ -29,8 +29,9 @@ struct AdmissionCase {
 
 #[test]
 fn table_driven_admission() {
-    let cfg = config();
-    let cases = vec![
+    let cfg: CrawlConfig = config();
+    
+    let cases: Vec<AdmissionCase> = vec![
         AdmissionCase {
             name: "admits in-scope http URL at depth 0",
             url: "https://example.com/",
@@ -114,17 +115,21 @@ fn table_driven_admission() {
     ];
 
     for case in cases {
-        let url = Url::parse(case.url)
-            .unwrap_or_else(|e| panic!("parse failed for '{}' ({}): {e}", case.name, case.url));
-        let source = case.source.map(UrlId);
-        let result = admit(&cfg, &url, case.depth, source);
+        let url: Url = Url::parse(case.url).unwrap_or_else(|e: url::ParseError| panic!("parse failed for '{}' ({}): {e}", case.name, case.url));
+        let source: Option<UrlId> = case.source.map(UrlId);
+        let result: Result<crawler_core::AdmittedUrl, AdmissionError> = admit(&cfg, &url, case.depth, source);
 
         if case.expect_ok {
-            let admitted = result.unwrap_or_else(|e| panic!("expected Ok for '{}', got Err: {e}", case.name));
+            let admitted: crawler_core::AdmittedUrl = result.unwrap_or_else(|e: AdmissionError| panic!("expected Ok for '{}', got Err: {e}", case.name));
             assert_eq!(admitted.depth, case.depth, "depth mismatch: {}", case.name);
-            assert_eq!(admitted.source_url_id, source, "source mismatch: {}", case.name);
+            assert_eq!(
+                admitted.source_url_id, source,
+                "source mismatch: {}",
+                case.name
+            );
         } else {
-            let err = result.unwrap_err();
+            let err: AdmissionError = result.unwrap_err();
+
             match case.expect_error_variant.unwrap() {
                 "max_depth" => assert!(
                     matches!(err, AdmissionError::MaxDepthExceeded { .. }),
@@ -154,8 +159,8 @@ fn table_driven_admission() {
 
 #[test]
 fn admission_produces_correct_crawl_key() {
-    let cfg = config();
-    let url = Url::parse("https://EXAMPLE.COM:443/page?q=1#frag").unwrap();
-    let admitted = admit(&cfg, &url, 0, None).unwrap();
+    let cfg: CrawlConfig = config();
+    let url: Url = Url::parse("https://EXAMPLE.COM:443/page?q=1#frag").unwrap();
+    let admitted: crawler_core::AdmittedUrl = admit(&cfg, &url, 0, None).unwrap();
     assert_eq!(admitted.crawl_key.as_str(), "https://example.com/page?q=1");
 }

@@ -156,5 +156,6 @@ pub fn admit(
 }
 
 pub fn resolve_relative(base: &Url, reference: &str) -> Result<Url, AdmissionError> {
-    base.join(reference).map_err(|e| AdmissionError::ParseFailed(e.to_string()))
+    base.join(reference)
+        .map_err(|e| AdmissionError::ParseFailed(e.to_string()))
 }

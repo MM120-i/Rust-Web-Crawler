@@ -9,7 +9,7 @@ struct NormalizeCase {
 
 #[test]
 fn table_driven_normalization() {
-    let cases = vec![
+    let cases: Vec<NormalizeCase> = vec![
         // Basic scheme/host lowercasing
         NormalizeCase {
             name: "lowercases HTTP scheme",
@@ -74,7 +74,6 @@ fn table_driven_normalization() {
             input: "https://example.com/../a",
             expected: Ok("https://example.com/a"),
         },
-        // Query preservation
         NormalizeCase {
             name: "preserves query order",
             input: "https://example.com/?b=2&a=1",
@@ -123,13 +122,11 @@ fn table_driven_normalization() {
             input: "javascript:alert(1)",
             expected: Err("unsupported"),
         },
-        // Unicode host
         NormalizeCase {
             name: "lowercases unicode host",
             input: "http://MÜNCHEN.DE/",
             expected: Ok("http://xn--mnchen-3ya.de/"),
         },
-        // Percent encoding preserved
         NormalizeCase {
             name: "preserves percent encoding",
             input: "https://example.com/path%20with%20spaces",
@@ -138,12 +135,12 @@ fn table_driven_normalization() {
     ];
 
     for case in cases {
-        let url = Url::parse(case.input).unwrap_or_else(|_| panic!("parse failed for: {}", case.input));
-        let result = normalize_for_key(&url);
+        let url: Url = Url::parse(case.input).unwrap_or_else(|_| panic!("parse failed for: {}", case.input));
+        let result: Result<crawler_core::CrawlKey, crawler_core::AdmissionError> = normalize_for_key(&url);
 
         match case.expected {
             Ok(expected_key) => {
-                let key = result.unwrap_or_else(|e| panic!("expected Ok for '{}', got Err: {e}", case.name));
+                let key: crawler_core::CrawlKey = result.unwrap_or_else(|e: crawler_core::AdmissionError| panic!("expected Ok for '{}', got Err: {e}", case.name));
                 assert_eq!(key.as_str(), expected_key, "failed: {}", case.name);
             }
             Err(_err_type) => {
