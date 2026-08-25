@@ -69,7 +69,7 @@ fn mark_complete_removes_from_in_flight() {
     frontier.dequeue();
     assert_eq!(frontier.stats().in_flight_count, 1);
 
-    frontier.mark_complete(&key);
+    assert!(frontier.mark_complete(&key));
     assert_eq!(frontier.stats().in_flight_count, 0);
     assert_eq!(frontier.stats().completed_count, 1);
 }
@@ -83,7 +83,7 @@ fn mark_failed_removes_from_in_flight() {
     frontier.enqueue(admitted);
     frontier.dequeue();
 
-    frontier.mark_failed(&key);
+    assert!(frontier.mark_failed(&key));
     assert_eq!(frontier.stats().in_flight_count, 0);
     assert_eq!(frontier.stats().failed_count, 1);
 }
@@ -138,4 +138,57 @@ fn empty_frontier_is_empty() {
     let frontier: Frontier = Frontier::new(CrawlJobId(1), 10);
     assert!(frontier.is_empty());
     assert_eq!(frontier.pages_fetched(), 0);
+}
+
+#[test]
+fn capacity_includes_in_flight_urls() {
+    let mut frontier: Frontier = Frontier::new(CrawlJobId(1), 2);
+    frontier.enqueue(make_admitted("/a", 0));
+    frontier.enqueue(make_admitted("/b", 0));
+    frontier.dequeue();
+    frontier.dequeue();
+    assert_eq!(frontier.stats().in_flight_count, 2);
+    assert_eq!(frontier.stats().queued_count, 0);
+    
+    assert!(matches!(
+        frontier.enqueue(make_admitted("/c", 0)),
+        EnqueueResult::AtCapacity
+    ));
+}
+
+#[test]
+fn mark_complete_returns_false_for_unknown_key() {
+    let mut frontier: Frontier = Frontier::new(CrawlJobId(1), 10);
+    let key: crawler_core::CrawlKey = crawler_core::url::normalize_for_key(
+        &Url::parse("https://example.com/never-enqueued").unwrap(),
+    )
+    .unwrap();
+
+    assert!(!frontier.mark_complete(&key));
+    assert_eq!(frontier.stats().completed_count, 0);
+}
+
+#[test]
+fn mark_failed_returns_false_for_unknown_key() {
+    let mut frontier: Frontier = Frontier::new(CrawlJobId(1), 10);
+    let key: crawler_core::CrawlKey = crawler_core::url::normalize_for_key(
+        &Url::parse("https://example.com/never-enqueued").unwrap(),
+    )
+    .unwrap();
+
+    assert!(!frontier.mark_failed(&key));
+    assert_eq!(frontier.stats().failed_count, 0);
+}
+
+#[test]
+fn double_complete_is_noop() {
+    let mut frontier: Frontier = Frontier::new(CrawlJobId(1), 10);
+    let admitted: AdmittedUrl = make_admitted("/page1", 0);
+    let key: crawler_core::CrawlKey = admitted.crawl_key.clone();
+
+    frontier.enqueue(admitted);
+    frontier.dequeue();
+    assert!(frontier.mark_complete(&key));
+    assert!(!frontier.mark_complete(&key));
+    assert_eq!(frontier.stats().completed_count, 1);
 }

@@ -51,7 +51,8 @@ impl Frontier {
     }
 
     pub fn enqueue(&mut self, admitted: AdmittedUrl) -> EnqueueResult {
-        if self.pages_fetched + (self.queue.len() as u32) >= self.max_pages {
+        let total_active: u32 = self.pages_fetched + self.queue.len() as u32 + self.in_flight.len() as u32;
+        if total_active >= self.max_pages {
             return EnqueueResult::AtCapacity;
         }
 
@@ -59,9 +60,8 @@ impl Frontier {
             return EnqueueResult::Duplicate;
         }
 
-        let url_id = UrlId(self.next_url_id);
+        let url_id: UrlId = UrlId(self.next_url_id);
         self.next_url_id += 1;
-
         self.seen.insert(admitted.crawl_key.clone());
         self.queue.push_back(admitted);
         self.total_enqueued += 1;
@@ -70,23 +70,31 @@ impl Frontier {
     }
 
     pub fn dequeue(&mut self) -> Option<(UrlId, AdmittedUrl)> {
-        let admitted = self.queue.pop_front()?;
-        let url_id = UrlId(self.next_url_id - self.queue.len() as u64 - 1);
-
+        let admitted: AdmittedUrl = self.queue.pop_front()?;
+        let url_id: UrlId = UrlId(self.next_url_id - self.queue.len() as u64 - 1);
         self.in_flight.insert(admitted.crawl_key.clone());
-
         Some((url_id, admitted))
     }
 
-    pub fn mark_complete(&mut self, crawl_key: &CrawlKey) {
-        self.in_flight.remove(crawl_key);
-        self.pages_fetched += 1;
-        self.completed_count += 1;
+    pub fn mark_complete(&mut self, crawl_key: &CrawlKey) -> bool {
+        if self.in_flight.remove(crawl_key) {
+            self.pages_fetched += 1;
+            self.completed_count += 1;
+            true
+        } 
+        else {
+            false
+        }
     }
 
-    pub fn mark_failed(&mut self, crawl_key: &CrawlKey) {
-        self.in_flight.remove(crawl_key);
-        self.failed_count += 1;
+    pub fn mark_failed(&mut self, crawl_key: &CrawlKey) -> bool {
+        if self.in_flight.remove(crawl_key) {
+            self.failed_count += 1;
+            true
+        } 
+        else {
+            false
+        }
     }
 
     pub fn stats(&self) -> FrontierStats {
