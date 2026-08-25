@@ -1,3 +1,6 @@
+# Use PowerShell to run recipes on Windows instead of hunting for a `sh` on PATH
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
 # List available commands (this is what runs if you just type `just`)
 default:
     @just --list
