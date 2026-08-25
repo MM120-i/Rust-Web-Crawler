@@ -135,12 +135,17 @@ fn table_driven_normalization() {
     ];
 
     for case in cases {
-        let url: Url = Url::parse(case.input).unwrap_or_else(|_| panic!("parse failed for: {}", case.input));
-        let result: Result<crawler_core::CrawlKey, crawler_core::AdmissionError> = normalize_for_key(&url);
+        let url: Url =
+            Url::parse(case.input).unwrap_or_else(|_| panic!("parse failed for: {}", case.input));
+        let result: Result<crawler_core::CrawlKey, crawler_core::AdmissionError> =
+            normalize_for_key(&url);
 
         match case.expected {
             Ok(expected_key) => {
-                let key: crawler_core::CrawlKey = result.unwrap_or_else(|e: crawler_core::AdmissionError| panic!("expected Ok for '{}', got Err: {e}", case.name));
+                let key: crawler_core::CrawlKey =
+                    result.unwrap_or_else(|e: crawler_core::AdmissionError| {
+                        panic!("expected Ok for '{}', got Err: {e}", case.name)
+                    });
                 assert_eq!(key.as_str(), expected_key, "failed: {}", case.name);
             }
             Err(_err_type) => {

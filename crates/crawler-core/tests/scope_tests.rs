@@ -56,14 +56,16 @@ fn scope_rejects_deep_subdomain_when_only_parent_listed() {
 
 #[test]
 fn scope_respects_path_prefix() {
-    let config: crawler_core::CrawlConfig = test_config_with_paths(vec!["example.com"], vec!["/docs"]);
+    let config: crawler_core::CrawlConfig =
+        test_config_with_paths(vec!["example.com"], vec!["/docs"]);
     assert!(config.is_in_scope(&Url::parse("https://example.com/docs").unwrap()));
     assert!(config.is_in_scope(&Url::parse("https://example.com/docs/intro").unwrap()));
 }
 
 #[test]
 fn scope_rejects_path_not_matching_prefix() {
-    let config: crawler_core::CrawlConfig = test_config_with_paths(vec!["example.com"], vec!["/docs"]);
+    let config: crawler_core::CrawlConfig =
+        test_config_with_paths(vec!["example.com"], vec!["/docs"]);
     assert!(!config.is_in_scope(&Url::parse("https://example.com/blog").unwrap()));
 }
 

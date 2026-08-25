@@ -6,7 +6,7 @@ use url::Url;
 fn make_admitted(path: &str, depth: u32) -> AdmittedUrl {
     let url: Url = Url::parse(&format!("https://example.com{path}")).unwrap();
     let crawl_key: crawler_core::CrawlKey = crawler_core::url::normalize_for_key(&url).unwrap();
-    
+
     AdmittedUrl {
         crawl_key,
         url,
