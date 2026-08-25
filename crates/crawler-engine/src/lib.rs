@@ -52,6 +52,7 @@ impl Frontier {
 
     pub fn enqueue(&mut self, admitted: AdmittedUrl) -> EnqueueResult {
         let total_active: u32 = self.pages_fetched + self.queue.len() as u32 + self.in_flight.len() as u32;
+        
         if total_active >= self.max_pages {
             return EnqueueResult::AtCapacity;
         }

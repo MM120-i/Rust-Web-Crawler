@@ -149,7 +149,7 @@ fn capacity_includes_in_flight_urls() {
     frontier.dequeue();
     assert_eq!(frontier.stats().in_flight_count, 2);
     assert_eq!(frontier.stats().queued_count, 0);
-    
+
     assert!(matches!(
         frontier.enqueue(make_admitted("/c", 0)),
         EnqueueResult::AtCapacity
