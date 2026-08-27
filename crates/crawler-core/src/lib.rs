@@ -27,6 +27,7 @@ pub struct CrawlConfig {
     pub global_concurrency: usize,
     pub per_origin_delay: Duration,
     pub request_timeout: Duration,
+    pub connect_timeout: Duration,
     pub max_body_bytes: usize,
     pub user_agent: String,
 }
