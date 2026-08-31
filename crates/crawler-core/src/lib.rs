@@ -48,6 +48,7 @@ pub enum SkipReason {
     MaxDepthReached,
     MaxPagesReached,
     InvalidUrl,
+    UnsupportedMediaType,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

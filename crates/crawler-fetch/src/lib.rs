@@ -1,86 +1,27 @@
-// crawler-fetch: the "delivery driver" crate.
-// Job: given a URL, go get the raw bytes off the network — safely, with limits.
-// It should NOT know anything about parsing HTML — that's crawler-parser's job.
-// This struct is the "one reusable reqwest::Client per worker" from the checklist.
-// Think of `reqwest::Client` as a phone line: expensive to set up (DNS lookup,
-// TLS handshake setup, connection pool), cheap to reuse. So we build ONE and
-// keep it alive for the whole life of the worker, instead of making a new
-// phone line for every single URL we fetch.
+/// FetchOutcome, either returns a html or a reason for a skip (wasnt html)
+pub enum FetchOutcome {
+    Html(Vec<u8>),
+    Skipped(crawler_core::SkipReason),
+}
+/// stores one reqwest::Client here for reuse, expensive to just keep making
 pub struct Fetcher {
     // TODO: store a `reqwest::Client` here.
     // client: reqwest::Client,
     client: reqwest::Client,
 }
 
+/// implementing the Fetcher struct
 impl Fetcher {
-    // This is where checklist items 1-3 all come together:
-    //   1. build ONE client (this whole function only runs once per worker)
-    //   2. set a custom User-Agent so we identify ourselves honestly
-    //      (do NOT copy a real browser's user agent string — that's imitating
-    //      a browser, which the checklist explicitly says not to do)
-    //   3. set a connect timeout (max time to establish the connection) AND
-    //      a total/overall timeout (max time for the whole request,
-    //      including downloading the body) — these are two different knobs
-    //      on reqwest::ClientBuilder, both matter
-    //
-    // Rough shape of what needs to happen here (pseudocode, not real syntax):
-    //
-    //   let client = reqwest::Client::builder()
-    //       .user_agent("your-product-name/0.1 (+contact-or-url)")
-    //       .connect_timeout(...)   // e.g. a few seconds
-    //       .timeout(...)           // overall request deadline
-    //       .build()?;
-    //
-    //   Fetcher { client }
-    //
-    // Question to think about while writing this: where should the timeout
-    // durations and user-agent string come from? (Hint: crawler-core already
-    // has a `CrawlConfig` struct with `request_timeout` and `user_agent`
-    // fields — this constructor probably wants to take a `&CrawlConfig`.)
+    /// one time setup for a worker, reused for each fetch.
     pub fn new(config: &crawler_core::CrawlConfig) -> Result<Self, reqwest::Error> {
-        // Item 4: redirects.
-        //
-        // By default reqwest silently auto-follows up to 10 redirects for you.
-        // That's the problem: page A might be in scope, but a 302 could send
-        // you to a completely different host, a weird scheme, or loop forever
-        // — and reqwest would just go along with it before you ever see it.
-        //
-        // Fix: reqwest::redirect::Policy::custom(closure) lets you intercept
-        // EVERY hop. reqwest calls your closure with an `Attempt` before it
-        // follows a redirect, and you return one of:
-        //   attempt.follow()        -> ok, go ahead
-        //   attempt.stop()          -> stop here, treat current response as final
-        //   attempt.error(some_err) -> abort the whole request as an error
-        //
-        // `Attempt` gives you `.url()` (where it wants to redirect to) and
-        // `.previous()` (the chain of URLs already visited this request, so
-        // you can also cap redirect depth yourself, e.g. previous().len() > 5).
-        //
-        // The tricky Rust part: this closure has to be `'static + Send + Sync`
-        // (reqwest may reuse it across requests/threads), so it CANNOT borrow
-        // `config: &CrawlConfig` by reference — that reference only lives as
-        // long as this `new()` call. You need to move an *owned* value in
-        // instead. CrawlConfig already derives Clone, so something like
-        // `let config_for_redirects = config.clone();` before the builder,
-        // then use `config_for_redirects` inside the closure, would work.
-        //
-        // Rough shape (pseudocode):
-        //
-        //   let policy = reqwest::redirect::Policy::custom(move |attempt| {
-        //       if config_for_redirects.is_in_scope(attempt.url()) {
-        //           attempt.follow()
-        //       } else {
-        //           attempt.stop()
-        //       }
-        //   });
-        //
-        // Question to think about: CrawlConfig::is_in_scope already exists
-        // (crawler-core/src/lib.rs) — does checking scope alone cover
-        // "safety" too, or is there something else worth rejecting here
-        // (e.g. non-http(s) schemes, redirect chains that are too long)?
-
+        // clone to have no dangling ref (original will die once new() is done)
         let config_for_redirects = config.clone();
         let policy = reqwest::redirect::Policy::custom(move |attempt| {
+            // if we are past 5 hops (arbitrary number), just bail to prevent indinite redirection loops
+            if attempt.previous().len() > 5 {
+                return attempt.stop();
+            }
+            // make sure this crawl is within the allowed scope
             if config_for_redirects.is_in_scope(attempt.url()) {
                 attempt.follow()
             } else {
@@ -89,12 +30,46 @@ impl Fetcher {
         });
 
         let client = reqwest::Client::builder()
-            .user_agent(&config.user_agent)
-            .connect_timeout(config.connect_timeout)
-            .timeout(config.request_timeout)
-            .redirect(policy)
-            .build()?;
+            .user_agent(&config.user_agent) // crawler identifier (rather than browser)
+            .connect_timeout(config.connect_timeout) // max time to establish connection
+            .timeout(config.request_timeout) // max time for entire request
+            .redirect(policy) // checks policy for each url (above)
+            .build()?; // build into actual client, and if build fails, bail early with error (?)
 
         Ok(Fetcher { client })
+    }
+
+    /// fetches a page, either returns the html or a skipped outcome
+    pub async fn fetch(
+        &self,
+        url: reqwest::Url,
+        byte_limit: usize,
+    ) -> Result<FetchOutcome, reqwest::Error> {
+        let mut response = self.client.get(url).send().await?; // uses client from new()
+        // checks if its an html, if not, skip
+        let is_html = response
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .is_some_and(|s| s.starts_with("text/html"));
+
+        if !is_html {
+            return Ok(FetchOutcome::Skipped(
+                crawler_core::SkipReason::UnsupportedMediaType,
+            ));
+        }
+
+        // otherwise, copy with chunks rather than at once, until we hit our byte limit
+        let mut body: Vec<u8> = Vec::new();
+        while let Some(chunk) = response.chunk().await? {
+            if body.len() + chunk.len() > byte_limit {
+                let remainder = byte_limit - body.len();
+                body.extend_from_slice(&chunk[..remainder]);
+                break;
+            } else {
+                body.extend_from_slice(&chunk);
+            }
+        }
+        Ok(FetchOutcome::Html(body))
     }
 }

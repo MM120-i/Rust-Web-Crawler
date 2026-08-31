@@ -13,6 +13,7 @@ fn config() -> CrawlConfig {
         global_concurrency: 5,
         per_origin_delay: Duration::from_secs(1),
         request_timeout: Duration::from_secs(10),
+        connect_timeout: Duration::from_secs(5),
         max_body_bytes: 1024 * 1024,
         user_agent: "test-crawler/0.1".to_string(),
     }

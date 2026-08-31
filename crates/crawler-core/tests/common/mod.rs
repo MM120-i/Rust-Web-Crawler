@@ -11,6 +11,7 @@ pub fn test_config(allowed_hosts: Vec<&str>) -> CrawlConfig {
         global_concurrency: 5,
         per_origin_delay: Duration::from_millis(1000),
         request_timeout: Duration::from_secs(30),
+        connect_timeout: Duration::from_secs(10),
         max_body_bytes: 10 * 1024 * 1024,
         user_agent: "crawler-test/0.1".into(),
     }
@@ -26,6 +27,7 @@ pub fn test_config_with_paths(allowed_hosts: Vec<&str>, paths: Vec<&str>) -> Cra
         global_concurrency: 5,
         per_origin_delay: Duration::from_millis(1000),
         request_timeout: Duration::from_secs(30),
+        connect_timeout: Duration::from_secs(10),
         max_body_bytes: 10 * 1024 * 1024,
         user_agent: "crawler-test/0.1".into(),
     }
