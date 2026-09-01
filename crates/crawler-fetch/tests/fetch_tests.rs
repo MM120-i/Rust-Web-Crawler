@@ -83,7 +83,9 @@ async fn fetch_truncates_body_at_byte_limit() {
     let full_body = "0123456789abcdefghij"; // 20 bytes
     Mock::given(method("GET"))
         .and(path("/big"))
-        .respond_with(ResponseTemplate::new(200).set_body_raw(full_body.as_bytes().to_vec(), "text/html"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_raw(full_body.as_bytes().to_vec(), "text/html"),
+        )
         .mount(&server)
         .await;
 
