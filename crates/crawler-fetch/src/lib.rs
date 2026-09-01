@@ -1,12 +1,10 @@
 /// FetchOutcome, either returns a html or a reason for a skip (wasnt html)
 pub enum FetchOutcome {
-    Html(Vec<u8>),
+    Html { body: Vec<u8>, truncated: bool },
     Skipped(crawler_core::SkipReason),
 }
 /// stores one reqwest::Client here for reuse, expensive to just keep making
 pub struct Fetcher {
-    // TODO: store a `reqwest::Client` here.
-    // client: reqwest::Client,
     client: reqwest::Client,
 }
 
@@ -61,15 +59,17 @@ impl Fetcher {
 
         // otherwise, copy with chunks rather than at once, until we hit our byte limit
         let mut body: Vec<u8> = Vec::new();
+        let mut truncated = false; // have a flag to show if we didnt download everything (was truncated)
         while let Some(chunk) = response.chunk().await? {
             if body.len() + chunk.len() > byte_limit {
                 let remainder = byte_limit - body.len();
                 body.extend_from_slice(&chunk[..remainder]);
+                truncated = true;
                 break;
             } else {
                 body.extend_from_slice(&chunk);
             }
         }
-        Ok(FetchOutcome::Html(body))
+        Ok(FetchOutcome::Html { body, truncated })
     }
 }
