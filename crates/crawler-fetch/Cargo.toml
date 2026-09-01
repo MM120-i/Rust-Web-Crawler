@@ -1,0 +1,13 @@
+[package]
+name = "crawler-fetch"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+crawler-core = { path = "../crawler-core" }
+reqwest.workspace = true
+tokio.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+wiremock = "0.6"

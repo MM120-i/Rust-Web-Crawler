@@ -3,6 +3,8 @@ resolver = "3"
 members = [
     "crates/crawler-core",
     "crates/crawler-engine",
+    "crates/crawler-fetch",
+    "crates/crawler-parser",
     "crates/crawler-cli",
     "crates/crawler-test-site",
 ]
