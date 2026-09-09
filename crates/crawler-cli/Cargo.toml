@@ -6,7 +6,13 @@ edition.workspace = true
 [dependencies]
 crawler-core = { path = "../crawler-core" }
 crawler-engine = { path = "../crawler-engine" }
+crawler-fetch = { path = "../crawler-fetch" }
+crawler-parser = { path = "../crawler-parser" }
+clap = { workspace = true }
 reqwest = { workspace = true }
 scraper = { workspace = true }
 tokio = { workspace = true }
 url = { workspace = true }
+
+[dev-dependencies]
+crawler-test-site = { path = "../crawler-test-site" }
